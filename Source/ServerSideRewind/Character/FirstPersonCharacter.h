@@ -69,6 +69,14 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerKillButtonPressed(FVector Start, FVector End);
 
+	/**
+	* Methods to check for valid kill.
+	* Called from ServerKillButtonPressed method.
+	*/
 	void CheckForKill(FVector Start, FVector End);
 	void CheckForKillServerSideRewind(FVector Start, FVector End);
+
+	/** Multicast remote procedure call to enable ragdoll when character is killed */
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRagdoll();
 };

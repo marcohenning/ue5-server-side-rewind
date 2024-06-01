@@ -24,7 +24,8 @@ AFirstPersonCharacter::AFirstPersonCharacter()
 	GetCharacterMovement()->MaxAcceleration = 1500.0f;
 	GetCharacterMovement()->AirControl = 1.0f;
 
-	/** Let mesh block visibility channel to be able to hit character with line traces */
+	/** Set up mesh collision */
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	/** Set multiplayer replication frequencies */
@@ -128,7 +129,7 @@ void AFirstPersonCharacter::KillButtonPressed()
 		/** Draw debug line */
 		if (HitResult.bBlockingHit)
 		{
-			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor(255, 0, 0), false, 2.0f, 0, 1.0f);
+			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor(255, 0, 0), false, 10.0f, 0, 1.0f);
 
 			/** Draw debug box if hit actor is of type AFirstPersonCharacter */
 			if (HitResult.GetActor())
@@ -136,11 +137,11 @@ void AFirstPersonCharacter::KillButtonPressed()
 				AFirstPersonCharacter* HitCharacter = Cast<AFirstPersonCharacter>(HitResult.GetActor());
 				if (HitCharacter)
 				{
-					DrawDebugBox(GetWorld(), HitResult.Location, FVector(6.0f), FColor::Red, false, 10.0f, 0, 1.0f);
+					DrawDebugBox(GetWorld(), HitResult.Location, FVector(6.0f), FColor(255, 0, 0), false, 10.0f, 0, 1.0f);
 				}
 			}
 		}
-		else { DrawDebugLine(GetWorld(), Start, End, FColor(255, 0, 0), false, 10.0f, 0, 1.0f); }
+		else { DrawDebugLine(GetWorld(), Start, End, FColor(255, 0, 0), false, 2.0f, 0, 1.0f); }
 	}
 
 	/** Request server to check for kill */
@@ -149,7 +150,16 @@ void AFirstPersonCharacter::KillButtonPressed()
 
 void AFirstPersonCharacter::CheckForKill(FVector Start, FVector End)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Check for kill normally."))
+	/** Perform line trace */
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
+
+	/** Enable ragdoll if hit character is of type AFirstPersonCharacter */
+	if (HitResult.bBlockingHit && HitResult.GetActor())
+	{
+		AFirstPersonCharacter* HitCharacter = Cast<AFirstPersonCharacter>(HitResult.GetActor());
+		if (HitCharacter) { HitCharacter->MulticastRagdoll(); }
+	}
 }
 
 void AFirstPersonCharacter::CheckForKillServerSideRewind(FVector Start, FVector End)
@@ -170,4 +180,17 @@ void AFirstPersonCharacter::ServerKillButtonPressed_Implementation(FVector Start
 	/** Initiate checking for kill depending on server side rewind settings */
 	if (GameMode->bUseServerSideRewind) { CheckForKillServerSideRewind(Start, End); }
 	else { CheckForKill(Start, End); }
+}
+
+void AFirstPersonCharacter::MulticastRagdoll_Implementation()
+{
+	/** Enable ragdoll */
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->WakeAllRigidBodies();
+	GetMesh()->bBlendPhysics = true;
+
+	/** Stop character movement */
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
 }
