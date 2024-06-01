@@ -64,4 +64,11 @@ private:
 
 	/** Called when the spot button is pressed */
 	void KillButtonPressed();
+
+	/** Server remote procedure call to check for kill */
+	UFUNCTION(Server, Reliable)
+	void ServerKillButtonPressed(FVector Start, FVector End);
+
+	void CheckForKill(FVector Start, FVector End);
+	void CheckForKillServerSideRewind(FVector Start, FVector End);
 };

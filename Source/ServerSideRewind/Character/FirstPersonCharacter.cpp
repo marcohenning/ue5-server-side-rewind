@@ -3,8 +3,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "ServerSideRewind/GameMode/ServerSideRewindGameMode.h"
 
 
 AFirstPersonCharacter::AFirstPersonCharacter()
@@ -101,5 +103,71 @@ void AFirstPersonCharacter::Look(const FInputActionValue& Value)
 
 void AFirstPersonCharacter::KillButtonPressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Kill button pressed."));
+	/** Get viewport center */
+	FVector2D ViewportSize;
+	if (GEngine->GameViewport) { GEngine->GameViewport->GetViewportSize(ViewportSize); }
+	FVector2D ViewportCenter(ViewportSize.X / 2.0f, ViewportSize.Y / 2.0f);
+
+	/** Convert viewport center from screen space to world space */
+	FVector ViewportCenterWorldPosition;
+	FVector ViewportCenterWorldDirection;
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(
+		this, 0), ViewportCenter, ViewportCenterWorldPosition, ViewportCenterWorldDirection);
+
+	/** Start of the line trace offset by 1 meter to avoid hitting own mesh */
+	FVector Start = ViewportCenterWorldPosition + ViewportCenterWorldDirection * 100.0f;
+	/** End of the line trace 1000 meters from start */
+	FVector End = Start + ViewportCenterWorldDirection * 100000.0f;
+
+	/** Perform line trace on client (used for drawing debug lines and boxes) */
+	if (!HasAuthority())
+	{
+		FHitResult HitResult;
+		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
+
+		/** Draw debug line */
+		if (HitResult.bBlockingHit)
+		{
+			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor(255, 0, 0), false, 2.0f, 0, 1.0f);
+
+			/** Draw debug box if hit actor is of type AFirstPersonCharacter */
+			if (HitResult.GetActor())
+			{
+				AFirstPersonCharacter* HitCharacter = Cast<AFirstPersonCharacter>(HitResult.GetActor());
+				if (HitCharacter)
+				{
+					DrawDebugBox(GetWorld(), HitResult.Location, FVector(6.0f), FColor::Red, false, 10.0f, 0, 1.0f);
+				}
+			}
+		}
+		else { DrawDebugLine(GetWorld(), Start, End, FColor(255, 0, 0), false, 10.0f, 0, 1.0f); }
+	}
+
+	/** Request server to check for kill */
+	if (bScreenToWorld) { ServerKillButtonPressed(Start, End); }
+}
+
+void AFirstPersonCharacter::CheckForKill(FVector Start, FVector End)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Check for kill normally."))
+}
+
+void AFirstPersonCharacter::CheckForKillServerSideRewind(FVector Start, FVector End)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Check for kill using server-side-rewind."))
+}
+
+void AFirstPersonCharacter::ServerKillButtonPressed_Implementation(FVector Start, FVector End)
+{
+	/** Get game mode */
+	AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(this);
+	if (GameModeBase == nullptr) { return; }
+	
+	/** Cast to custom game mode */
+	AServerSideRewindGameMode* GameMode = Cast<AServerSideRewindGameMode>(GameModeBase);
+	if (GameMode == nullptr) { return; }
+
+	/** Initiate checking for kill depending on server side rewind settings */
+	if (GameMode->bUseServerSideRewind) { CheckForKillServerSideRewind(Start, End); }
+	else { CheckForKill(Start, End); }
 }
