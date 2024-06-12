@@ -10,6 +10,7 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 class UBoxComponent;
+class UServerSideRewindComponent;
 
 
 /**
@@ -32,6 +33,10 @@ private:
 	/** First person camera component */
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* FirstPersonCamera;
+
+	/** Server side rewind component */
+	UPROPERTY()
+	UServerSideRewindComponent* ServerSideRewindComponent;
 
 	/** Character mapping context */
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))

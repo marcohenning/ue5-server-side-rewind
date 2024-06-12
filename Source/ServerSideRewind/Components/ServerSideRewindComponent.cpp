@@ -16,3 +16,19 @@ void UServerSideRewindComponent::TickComponent(float DeltaTime, ELevelTick TickT
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
+
+void UServerSideRewindComponent::SaveServerSideRewindSnapshot(FServerSideRewindSnapshot& Snapshot)
+{
+
+}
+
+void UServerSideRewindComponent::ShowServerSideRewindSnapshot(const FServerSideRewindSnapshot& Snapshot)
+{
+
+}
+
+bool UServerSideRewindComponent::CheckForKill(AFirstPersonCharacter* HitCharacter, 
+	float Time, FVector Start, FVector End)
+{
+	return false;
+}

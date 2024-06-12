@@ -8,6 +8,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "ServerSideRewind/GameMode/ServerSideRewindGameMode.h"
 #include "Components/BoxComponent.h"
+#include "ServerSideRewind/Components/ServerSideRewindComponent.h"
 
 
 AFirstPersonCharacter::AFirstPersonCharacter()
@@ -19,6 +20,11 @@ AFirstPersonCharacter::AFirstPersonCharacter()
 	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCamera->SetupAttachment(GetMesh(), FName("head"));
 	FirstPersonCamera->bUsePawnControlRotation = true;
+
+	/** Set up server side rewind component */
+	ServerSideRewindComponent = CreateDefaultSubobject<UServerSideRewindComponent>(
+		TEXT("ServerSideRewindComponent"));
+	ServerSideRewindComponent->Character = this;
 
 	/** Set movement variables */
 	GetCharacterMovement()->MaxWalkSpeed = 500.0f;

@@ -59,4 +59,12 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY()
+	AFirstPersonCharacter* Character;
+
+	void SaveServerSideRewindSnapshot(FServerSideRewindSnapshot& Snapshot);
+	void ShowServerSideRewindSnapshot(const FServerSideRewindSnapshot& Snapshot);
+	bool CheckForKill(AFirstPersonCharacter* HitCharacter, float Time, FVector Start, FVector End);
 };
