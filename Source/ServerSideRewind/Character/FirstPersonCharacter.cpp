@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "ServerSideRewind/GameMode/ServerSideRewindGameMode.h"
+#include "Components/BoxComponent.h"
 
 
 AFirstPersonCharacter::AFirstPersonCharacter()
@@ -31,6 +32,69 @@ AFirstPersonCharacter::AFirstPersonCharacter()
 	/** Set multiplayer replication frequencies */
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
+
+	/**
+	* Hit boxes used for server-side rewind
+	*/
+	HitBoxHead = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxHead"));
+	HitBoxHead->SetupAttachment(GetMesh(), "head");
+	HitBoxes.Add("head", HitBoxHead);
+
+	HitBoxUpperTorso = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxUpperTorso"));
+	HitBoxUpperTorso->SetupAttachment(GetMesh(), "spine_03");
+	HitBoxes.Add("spine_03", HitBoxUpperTorso);
+
+	HitBoxLowerTorso = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLowerTorso"));
+	HitBoxLowerTorso->SetupAttachment(GetMesh(), "spine_01");
+	HitBoxes.Add("spine_01", HitBoxLowerTorso);
+
+	HitBoxRightUpperArm = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightUpperArm"));
+	HitBoxRightUpperArm->SetupAttachment(GetMesh(), "upperarm_r");
+	HitBoxes.Add("upperarm_r", HitBoxRightUpperArm);
+
+	HitBoxRightLowerArm = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightLowerArm"));
+	HitBoxRightLowerArm->SetupAttachment(GetMesh(), "lowerarm_r");
+	HitBoxes.Add("lowerarm_r", HitBoxRightLowerArm);
+
+	HitBoxRightHand = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightHand"));
+	HitBoxRightHand->SetupAttachment(GetMesh(), "hand_r");
+	HitBoxes.Add("hand_r", HitBoxRightHand);
+
+	HitBoxLeftUpperArm = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftUpperArm"));
+	HitBoxLeftUpperArm->SetupAttachment(GetMesh(), "upperarm_l");
+	HitBoxes.Add("upperarm_l", HitBoxLeftUpperArm);
+
+	HitBoxLeftLowerArm = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftLowerArm"));
+	HitBoxLeftLowerArm->SetupAttachment(GetMesh(), "lowerarm_l");
+	HitBoxes.Add("lowerarm_l", HitBoxLeftLowerArm);
+
+	HitBoxLeftHand = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftHand"));
+	HitBoxLeftHand->SetupAttachment(GetMesh(), "hand_l");
+	HitBoxes.Add("hand_l", HitBoxLeftHand);
+
+	HitBoxRightUpperLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightUpperLeg"));
+	HitBoxRightUpperLeg->SetupAttachment(GetMesh(), "thigh_r");
+	HitBoxes.Add("thigh_r", HitBoxRightUpperLeg);
+
+	HitBoxRightLowerLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightLowerLeg"));
+	HitBoxRightLowerLeg->SetupAttachment(GetMesh(), "calf_r");
+	HitBoxes.Add("calf_r", HitBoxRightLowerLeg);
+
+	HitBoxRightFoot = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightFoot"));
+	HitBoxRightFoot->SetupAttachment(GetMesh(), "foot_r");
+	HitBoxes.Add("foot_r", HitBoxRightFoot);
+
+	HitBoxLeftUpperLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftUpperLeg"));
+	HitBoxLeftUpperLeg->SetupAttachment(GetMesh(), "thigh_l");
+	HitBoxes.Add("thigh_l", HitBoxLeftUpperLeg);
+
+	HitBoxLeftLowerLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftLowerLeg"));
+	HitBoxLeftLowerLeg->SetupAttachment(GetMesh(), "calf_l");
+	HitBoxes.Add("calf_l", HitBoxLeftLowerLeg);
+
+	HitBoxLeftFoot = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftFoot"));
+	HitBoxLeftFoot->SetupAttachment(GetMesh(), "foot_l");
+	HitBoxes.Add("foot_l", HitBoxLeftFoot);
 }
 
 void AFirstPersonCharacter::BeginPlay()

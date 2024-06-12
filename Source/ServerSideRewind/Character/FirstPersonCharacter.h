@@ -9,6 +9,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
+class UBoxComponent;
 
 
 /**
@@ -55,6 +56,58 @@ private:
 	/** Crosshair widget class added to the viewport in beginplay */
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> CrosshairWidgetClass;
+
+	/** Map storing all hit boxes */
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> HitBoxes;
+
+	/**
+	* Hit boxes used for server-side rewind
+	*/
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxHead;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxUpperTorso;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxLowerTorso;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxRightUpperArm;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxRightLowerArm;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxRightHand;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxLeftUpperArm;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxLeftLowerArm;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxLeftHand;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxRightUpperLeg;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxRightLowerLeg;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxRightFoot;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxLeftUpperLeg;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxLeftLowerLeg;
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* HitBoxLeftFoot;
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
