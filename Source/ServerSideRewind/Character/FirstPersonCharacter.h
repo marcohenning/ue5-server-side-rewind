@@ -26,6 +26,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	/** Map storing all hit boxes */
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> HitBoxes;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,34 +41,6 @@ private:
 	/** Server side rewind component */
 	UPROPERTY()
 	UServerSideRewindComponent* ServerSideRewindComponent;
-
-	/** Character mapping context */
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* MappingContextCharacter;
-
-	/** Input action for basic movement */
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
-
-	/** Input action for looking around */
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
-
-	/** Input action for jumping */
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
-
-	/** Input action for spotting */
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	UInputAction* KillAction;
-
-	/** Crosshair widget class added to the viewport in beginplay */
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> CrosshairWidgetClass;
-
-	/** Map storing all hit boxes */
-	UPROPERTY()
-	TMap<FName, UBoxComponent*> HitBoxes;
 
 	/**
 	* Hit boxes used for server-side rewind
@@ -113,6 +89,30 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* HitBoxLeftFoot;
+
+	/** Character mapping context */
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* MappingContextCharacter;
+
+	/** Input action for basic movement */
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UInputAction* MoveAction;
+
+	/** Input action for looking around */
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LookAction;
+
+	/** Input action for jumping */
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UInputAction* JumpAction;
+
+	/** Input action for spotting */
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	UInputAction* KillAction;
+
+	/** Crosshair widget class added to the viewport in beginplay */
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> CrosshairWidgetClass;
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);

@@ -24,7 +24,6 @@ AFirstPersonCharacter::AFirstPersonCharacter()
 	/** Set up server side rewind component */
 	ServerSideRewindComponent = CreateDefaultSubobject<UServerSideRewindComponent>(
 		TEXT("ServerSideRewindComponent"));
-	ServerSideRewindComponent->Character = this;
 
 	/** Set movement variables */
 	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
