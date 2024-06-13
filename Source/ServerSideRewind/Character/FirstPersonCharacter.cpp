@@ -43,63 +43,75 @@ AFirstPersonCharacter::AFirstPersonCharacter()
 	*/
 	HitBoxHead = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxHead"));
 	HitBoxHead->SetupAttachment(GetMesh(), "head");
-	HitBoxes.Add(HitBoxHead);
+	HitBoxes.Add("head", HitBoxHead);
 
 	HitBoxUpperTorso = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxUpperTorso"));
 	HitBoxUpperTorso->SetupAttachment(GetMesh(), "spine_03");
-	HitBoxes.Add(HitBoxUpperTorso);
+	HitBoxes.Add("spine_03", HitBoxUpperTorso);
 
 	HitBoxLowerTorso = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLowerTorso"));
 	HitBoxLowerTorso->SetupAttachment(GetMesh(), "spine_01");
-	HitBoxes.Add(HitBoxLowerTorso);
+	HitBoxes.Add("spine_01", HitBoxLowerTorso);
 
 	HitBoxRightUpperArm = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightUpperArm"));
 	HitBoxRightUpperArm->SetupAttachment(GetMesh(), "upperarm_r");
-	HitBoxes.Add(HitBoxRightUpperArm);
+	HitBoxes.Add("upperarm_r", HitBoxRightUpperArm);
 
 	HitBoxRightLowerArm = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightLowerArm"));
 	HitBoxRightLowerArm->SetupAttachment(GetMesh(), "lowerarm_r");
-	HitBoxes.Add(HitBoxRightLowerArm);
+	HitBoxes.Add("lowerarm_r", HitBoxRightLowerArm);
 
 	HitBoxRightHand = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightHand"));
 	HitBoxRightHand->SetupAttachment(GetMesh(), "hand_r");
-	HitBoxes.Add(HitBoxRightHand);
+	HitBoxes.Add("hand_r", HitBoxRightHand);
 
 	HitBoxLeftUpperArm = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftUpperArm"));
 	HitBoxLeftUpperArm->SetupAttachment(GetMesh(), "upperarm_l");
-	HitBoxes.Add(HitBoxLeftUpperArm);
+	HitBoxes.Add("upperarm_l", HitBoxLeftUpperArm);
 
 	HitBoxLeftLowerArm = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftLowerArm"));
 	HitBoxLeftLowerArm->SetupAttachment(GetMesh(), "lowerarm_l");
-	HitBoxes.Add(HitBoxLeftLowerArm);
+	HitBoxes.Add("lowerarm_l", HitBoxLeftLowerArm);
 
 	HitBoxLeftHand = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftHand"));
 	HitBoxLeftHand->SetupAttachment(GetMesh(), "hand_l");
-	HitBoxes.Add(HitBoxLeftHand);
+	HitBoxes.Add("hand_l", HitBoxLeftHand);
 
 	HitBoxRightUpperLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightUpperLeg"));
 	HitBoxRightUpperLeg->SetupAttachment(GetMesh(), "thigh_r");
-	HitBoxes.Add(HitBoxRightUpperLeg);
+	HitBoxes.Add("thigh_r", HitBoxRightUpperLeg);
 
 	HitBoxRightLowerLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightLowerLeg"));
 	HitBoxRightLowerLeg->SetupAttachment(GetMesh(), "calf_r");
-	HitBoxes.Add(HitBoxRightLowerLeg);
+	HitBoxes.Add("calf_r", HitBoxRightLowerLeg);
 
 	HitBoxRightFoot = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxRightFoot"));
 	HitBoxRightFoot->SetupAttachment(GetMesh(), "foot_r");
-	HitBoxes.Add(HitBoxRightFoot);
+	HitBoxes.Add("foot_r", HitBoxRightFoot);
 
 	HitBoxLeftUpperLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftUpperLeg"));
 	HitBoxLeftUpperLeg->SetupAttachment(GetMesh(), "thigh_l");
-	HitBoxes.Add(HitBoxLeftUpperLeg);
+	HitBoxes.Add("thigh_l", HitBoxLeftUpperLeg);
 
 	HitBoxLeftLowerLeg = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftLowerLeg"));
 	HitBoxLeftLowerLeg->SetupAttachment(GetMesh(), "calf_l");
-	HitBoxes.Add(HitBoxLeftLowerLeg);
+	HitBoxes.Add("calf_l", HitBoxLeftLowerLeg);
 
 	HitBoxLeftFoot = CreateDefaultSubobject<UBoxComponent>(TEXT("HitBoxLeftFoot"));
 	HitBoxLeftFoot->SetupAttachment(GetMesh(), "foot_l");
-	HitBoxes.Add(HitBoxLeftFoot);
+	HitBoxes.Add("foot_l", HitBoxLeftFoot);
+
+	for (auto HitBox : HitBoxes)
+	{
+		if (HitBox.Value)
+		{
+			HitBox.Value->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel1);
+			HitBox.Value->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			HitBox.Value->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1,
+				ECollisionResponse::ECR_Block);
+			HitBox.Value->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+	}
 }
 
 void AFirstPersonCharacter::BeginPlay()

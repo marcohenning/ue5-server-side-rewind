@@ -21,22 +21,23 @@ void UServerSideRewindComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	SaveServerSideRewindSnapshot();
 }
 
-void UServerSideRewindComponent::TakeServerSideRewindSnapshot(FServerSideRewindSnapshot& Snapshot)
+void UServerSideRewindComponent::TakeServerSideRewindSnapshot(AFirstPersonCharacter* TargetCharacter, 
+	FServerSideRewindSnapshot& Snapshot)
 {
-	if (Character == nullptr) { return; }
+	if (TargetCharacter == nullptr) { return; }
 
-	Snapshot.Character = Character;
+	Snapshot.Character = TargetCharacter;
 	Snapshot.Time = GetWorld()->GetTimeSeconds();
 
-	for (UBoxComponent*& HitBox : Character->HitBoxes)
+	for (auto& HitBox : TargetCharacter->HitBoxes)
 	{
-		if (HitBox == nullptr) { break; }
+		if (HitBox.Value == nullptr) { break; }
 
 		FHitBoxSnapshot HitBoxSnapshot;
-		HitBoxSnapshot.Location = HitBox->GetComponentLocation();
-		HitBoxSnapshot.Rotation = HitBox->GetComponentRotation();
-		HitBoxSnapshot.Extent = HitBox->GetScaledBoxExtent();
-		Snapshot.HitBoxSnapshots.Add(HitBoxSnapshot);
+		HitBoxSnapshot.Location = HitBox.Value->GetComponentLocation();
+		HitBoxSnapshot.Rotation = HitBox.Value->GetComponentRotation();
+		HitBoxSnapshot.Extent = HitBox.Value->GetScaledBoxExtent();
+		Snapshot.HitBoxSnapshots.Add(HitBox.Key, HitBoxSnapshot);
 	}
 }
 
@@ -51,7 +52,7 @@ void UServerSideRewindComponent::SaveServerSideRewindSnapshot()
 	{
 		/** Take snapshot and save to snapshot history */
 		FServerSideRewindSnapshot ServerSideRewindSnapshot;
-		TakeServerSideRewindSnapshot(ServerSideRewindSnapshot);
+		TakeServerSideRewindSnapshot(Character, ServerSideRewindSnapshot);
 		ServerSideRewindSnapshotHistory.AddHead(ServerSideRewindSnapshot);
 
 		/** Show snapshot on screen */
@@ -74,7 +75,7 @@ void UServerSideRewindComponent::SaveServerSideRewindSnapshot()
 
 		/** Take snapshot and save to snapshot history */
 		FServerSideRewindSnapshot ServerSideRewindSnapshot;
-		TakeServerSideRewindSnapshot(ServerSideRewindSnapshot);
+		TakeServerSideRewindSnapshot(Character, ServerSideRewindSnapshot);
 		ServerSideRewindSnapshotHistory.AddHead(ServerSideRewindSnapshot);
 
 		/** Show snapshot on screen */
@@ -85,14 +86,29 @@ void UServerSideRewindComponent::SaveServerSideRewindSnapshot()
 void UServerSideRewindComponent::ShowServerSideRewindSnapshot(const FServerSideRewindSnapshot& Snapshot)
 {
 	/** Draw every hitbox to screen */
-	for (FHitBoxSnapshot HitBox : Snapshot.HitBoxSnapshots)
+	for (auto& HitBox : Snapshot.HitBoxSnapshots)
 	{
-		DrawDebugBox(GetWorld(), HitBox.Location, HitBox.Extent, 
-			FQuat(HitBox.Rotation), FColor::Red, false, MaxRewindTime);
+		DrawDebugBox(GetWorld(), HitBox.Value.Location, HitBox.Value.Extent,
+			FQuat(HitBox.Value.Rotation), FColor::Red, false, MaxRewindTime);
 	}
 }
 
-bool UServerSideRewindComponent::CheckForKill(AFirstPersonCharacter* HitCharacter, 
+void UServerSideRewindComponent::MoveHitBoxesToSnapshot(AFirstPersonCharacter* TargetCharacter, 
+	const FServerSideRewindSnapshot& Snapshot)
+{
+	if (TargetCharacter == nullptr) { return; }
+
+	for (auto& HitBox : TargetCharacter->HitBoxes)
+	{
+		if (HitBox.Value == nullptr) { break; }
+
+		HitBox.Value->SetWorldLocation(Snapshot.HitBoxSnapshots[HitBox.Key].Location);
+		HitBox.Value->SetWorldRotation(Snapshot.HitBoxSnapshots[HitBox.Key].Rotation);
+		HitBox.Value->SetBoxExtent(Snapshot.HitBoxSnapshots[HitBox.Key].Extent);
+	}
+}
+
+bool UServerSideRewindComponent::CheckForKill(AFirstPersonCharacter* HitCharacter,
 	float Time, FVector Start, FVector End)
 {
 	return false;

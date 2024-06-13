@@ -42,7 +42,7 @@ struct FServerSideRewindSnapshot
 	AFirstPersonCharacter* Character;
 
 	UPROPERTY()
-	TArray<FHitBoxSnapshot> HitBoxSnapshots;
+	TMap<FName, FHitBoxSnapshot> HitBoxSnapshots;
 };
 
 
@@ -71,14 +71,22 @@ private:
 	/** Server side rewind snapshots going back as far as MaxRewindTime allows */
 	TDoubleLinkedList<FServerSideRewindSnapshot> ServerSideRewindSnapshotHistory;
 
-	/** Takes snapshot of the current character state */
-	void TakeServerSideRewindSnapshot(FServerSideRewindSnapshot& Snapshot);
+	/** Takes snapshot of the current character state of the specified character */
+	void TakeServerSideRewindSnapshot(AFirstPersonCharacter* TargetCharacter, 
+		FServerSideRewindSnapshot& Snapshot);
 
 	/** Saves snapshot of the current character state */
 	void SaveServerSideRewindSnapshot();
 
 	/** Draws hitboxes (Debug only) */
 	void ShowServerSideRewindSnapshot(const FServerSideRewindSnapshot& Snapshot);
+
+	/**
+	* Helper function used for moving hitboxes to position of snapshot to check for kill
+	* and then move them back to their original position.
+	*/
+	void MoveHitBoxesToSnapshot(AFirstPersonCharacter* TargetCharacter, 
+		const FServerSideRewindSnapshot& Snapshot);
 
 	/** Checks for kill using server side rewind */
 	bool CheckForKill(AFirstPersonCharacter* HitCharacter, float Time, FVector Start, FVector End);
