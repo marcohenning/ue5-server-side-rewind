@@ -57,6 +57,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 		FActorComponentTickFunction* ThisTickFunction) override;
 
+	/** Server side rewind snapshots going back as far as MaxRewindTime allows */
+	TDoubleLinkedList<FServerSideRewindSnapshot> ServerSideRewindSnapshotHistory;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -68,9 +71,6 @@ private:
 	/** Max amount of seconds to go back in time */
 	float MaxRewindTime = 3.0f;
 
-	/** Server side rewind snapshots going back as far as MaxRewindTime allows */
-	TDoubleLinkedList<FServerSideRewindSnapshot> ServerSideRewindSnapshotHistory;
-
 	/** Takes snapshot of the current character state of the specified character */
 	void TakeServerSideRewindSnapshot(AFirstPersonCharacter* TargetCharacter, 
 		FServerSideRewindSnapshot& Snapshot);
@@ -80,6 +80,9 @@ private:
 
 	/** Draws hitboxes (Debug only) */
 	void ShowServerSideRewindSnapshot(const FServerSideRewindSnapshot& Snapshot);
+
+	/** Helper function to find the snapshot to check (closest one to the hit time) */
+	FServerSideRewindSnapshot FindSnapshotToCheck(AFirstPersonCharacter* TargetCharacter, float Time);
 
 	/**
 	* Helper function used for moving hitboxes to position of snapshot to check for kill

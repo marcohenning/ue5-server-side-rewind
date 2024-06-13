@@ -93,6 +93,44 @@ void UServerSideRewindComponent::ShowServerSideRewindSnapshot(const FServerSideR
 	}
 }
 
+FServerSideRewindSnapshot UServerSideRewindComponent::FindSnapshotToCheck(
+	AFirstPersonCharacter* TargetCharacter, float Time)
+{
+	/** Checking for nullptr */
+	if (TargetCharacter == nullptr || TargetCharacter->GetServerSideRewindComponent() == nullptr ||
+		TargetCharacter->GetServerSideRewindComponent()->ServerSideRewindSnapshotHistory.GetHead() == nullptr ||
+		TargetCharacter->GetServerSideRewindComponent()->ServerSideRewindSnapshotHistory.GetTail() == nullptr)
+	{
+		return FServerSideRewindSnapshot();
+	}
+
+	/** Get snapshot history */
+	const TDoubleLinkedList<FServerSideRewindSnapshot>& History = TargetCharacter->
+		GetServerSideRewindComponent()->ServerSideRewindSnapshotHistory;
+
+	/** Get oldest and latest times in history */
+	const float OldestTime = History.GetTail()->GetValue().Time;
+	const float LatestTime = History.GetHead()->GetValue().Time;
+
+	/** Too far back in the past */
+	if (OldestTime > Time) { return FServerSideRewindSnapshot(); }
+
+	/** Exact match between hit time and oldest time, simply return oldest snapshot */
+	if (OldestTime == Time) { return History.GetTail()->GetValue(); }
+
+	/** Hit time newer than or equal to latest snapshot, simply return latest snapshot */
+	if (LatestTime <= Time) { return History.GetHead()->GetValue(); }
+
+	/** Find first snapshot that is equal to or older than hit time and return it */
+	TDoubleLinkedList<FServerSideRewindSnapshot>::TDoubleLinkedListNode* CurrentNode = History.GetHead();
+	while (CurrentNode->GetValue().Time > Time)
+	{
+		if (CurrentNode->GetNextNode() == nullptr) { break; }
+		CurrentNode = CurrentNode->GetNextNode();
+	}
+	return CurrentNode->GetValue();
+}
+
 void UServerSideRewindComponent::MoveHitBoxesToSnapshot(AFirstPersonCharacter* TargetCharacter, 
 	const FServerSideRewindSnapshot& Snapshot)
 {
@@ -111,5 +149,18 @@ void UServerSideRewindComponent::MoveHitBoxesToSnapshot(AFirstPersonCharacter* T
 bool UServerSideRewindComponent::CheckForKill(AFirstPersonCharacter* HitCharacter,
 	float Time, FVector Start, FVector End)
 {
+	if (HitCharacter == nullptr) { return false; }
+
+	/** Save current snapshot to reset hitboxes after checking for kill */
+	FServerSideRewindSnapshot CurrentSnapshot;
+	TakeServerSideRewindSnapshot(HitCharacter, CurrentSnapshot);
+
+	/** Find snapshot to check */
+	FServerSideRewindSnapshot SnapshotToCheck = FindSnapshotToCheck(HitCharacter, Time);
+
+	/** Move hitboxes to their position at the time of the snapshot to check */
+	MoveHitBoxesToSnapshot(HitCharacter, SnapshotToCheck);
+
+	/** TODO: Implement check */
 	return false;
 }

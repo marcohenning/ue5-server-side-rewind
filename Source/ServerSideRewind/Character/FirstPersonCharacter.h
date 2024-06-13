@@ -26,6 +26,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	FORCEINLINE UServerSideRewindComponent* GetServerSideRewindComponent() { return ServerSideRewindComponent; }
+
 	/** Map storing all hit boxes */
 	UPROPERTY()
 	TMap<FName, UBoxComponent*> HitBoxes;
