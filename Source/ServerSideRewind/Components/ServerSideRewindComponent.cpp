@@ -33,24 +33,24 @@ void UServerSideRewindComponent::SaveServerSideRewindSnapshot(FServerSideRewindS
 	Snapshot.Character = Character;
 	Snapshot.Time = GetWorld()->GetTimeSeconds();
 
-	for (auto& HitBox : Character->HitBoxes)
+	for (UBoxComponent*& HitBox : Character->HitBoxes)
 	{
-		if (HitBox.Value == nullptr) { break; }
+		if (HitBox == nullptr) { break; }
 
 		FHitBoxSnapshot HitBoxSnapshot;
-		HitBoxSnapshot.Location = HitBox.Value->GetComponentLocation();
-		HitBoxSnapshot.Rotation = HitBox.Value->GetComponentRotation();
-		HitBoxSnapshot.Extent = HitBox.Value->GetScaledBoxExtent();
-		Snapshot.HitBoxSnapshots.Add(HitBox.Key, HitBoxSnapshot);
+		HitBoxSnapshot.Location = HitBox->GetComponentLocation();
+		HitBoxSnapshot.Rotation = HitBox->GetComponentRotation();
+		HitBoxSnapshot.Extent = HitBox->GetScaledBoxExtent();
+		Snapshot.HitBoxSnapshots.Add(HitBoxSnapshot);
 	}
 }
 
 void UServerSideRewindComponent::ShowServerSideRewindSnapshot(const FServerSideRewindSnapshot& Snapshot)
 {
-	for (auto& HitBox : Snapshot.HitBoxSnapshots)
+	for (FHitBoxSnapshot HitBox : Snapshot.HitBoxSnapshots)
 	{
-		DrawDebugBox(GetWorld(), HitBox.Value.Location, HitBox.Value.Extent, 
-			FQuat(HitBox.Value.Rotation), FColor::Red, false, 3.0f);
+		DrawDebugBox(GetWorld(), HitBox.Location, HitBox.Extent, 
+			FQuat(HitBox.Rotation), FColor::Red, false, 3.0f);
 	}
 }
 

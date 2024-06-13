@@ -26,9 +26,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	/** Map storing all hit boxes */
+	/** Array storing all hit boxes */
 	UPROPERTY()
-	TMap<FName, UBoxComponent*> HitBoxes;
+	TArray<UBoxComponent*> HitBoxes;
 
 protected:
 	virtual void BeginPlay() override;

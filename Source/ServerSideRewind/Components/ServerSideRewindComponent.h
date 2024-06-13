@@ -42,7 +42,7 @@ struct FServerSideRewindSnapshot
 	AFirstPersonCharacter* Character;
 
 	UPROPERTY()
-	TMap<FName, FHitBoxSnapshot> HitBoxSnapshots;
+	TArray<FHitBoxSnapshot> HitBoxSnapshots;
 };
 
 
