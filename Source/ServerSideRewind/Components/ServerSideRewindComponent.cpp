@@ -18,15 +18,10 @@ void UServerSideRewindComponent::TickComponent(float DeltaTime, ELevelTick TickT
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	Character = Character == nullptr ? Cast<AFirstPersonCharacter>(GetOwner()) : Character;
-	if (Character == nullptr || !Character->HasAuthority()) { return; }
-
-	FServerSideRewindSnapshot ServerSideRewindSnapshot;
-	SaveServerSideRewindSnapshot(ServerSideRewindSnapshot);
-	ShowServerSideRewindSnapshot(ServerSideRewindSnapshot);
+	SaveServerSideRewindSnapshot();
 }
 
-void UServerSideRewindComponent::SaveServerSideRewindSnapshot(FServerSideRewindSnapshot& Snapshot)
+void UServerSideRewindComponent::TakeServerSideRewindSnapshot(FServerSideRewindSnapshot& Snapshot)
 {
 	if (Character == nullptr) { return; }
 
@@ -45,12 +40,55 @@ void UServerSideRewindComponent::SaveServerSideRewindSnapshot(FServerSideRewindS
 	}
 }
 
+void UServerSideRewindComponent::SaveServerSideRewindSnapshot()
+{
+	/** Try getting owning character */
+	Character = Character == nullptr ? Cast<AFirstPersonCharacter>(GetOwner()) : Character;
+	if (Character == nullptr || !Character->HasAuthority()) { return; }
+
+	/** Handle first and second snapshot */
+	if (ServerSideRewindSnapshotHistory.Num() <= 1)
+	{
+		/** Take snapshot and save to snapshot history */
+		FServerSideRewindSnapshot ServerSideRewindSnapshot;
+		TakeServerSideRewindSnapshot(ServerSideRewindSnapshot);
+		ServerSideRewindSnapshotHistory.AddHead(ServerSideRewindSnapshot);
+
+		/** Show snapshot on screen */
+		ShowServerSideRewindSnapshot(ServerSideRewindSnapshot);
+	}
+	/** Handle all other snapshots */
+	else
+	{
+		/** Total stored time in snapshot history */
+		float SnapshotHistoryLength = ServerSideRewindSnapshotHistory.GetHead()->
+			GetValue().Time - ServerSideRewindSnapshotHistory.GetTail()->GetValue().Time;
+		
+		/** Remove snapshots older than MaxRewindTime */
+		while (SnapshotHistoryLength > MaxRewindTime)
+		{
+			ServerSideRewindSnapshotHistory.RemoveNode(ServerSideRewindSnapshotHistory.GetTail());
+			SnapshotHistoryLength = ServerSideRewindSnapshotHistory.GetHead()-> GetValue().Time - 
+				ServerSideRewindSnapshotHistory.GetTail()->GetValue().Time;
+		}
+
+		/** Take snapshot and save to snapshot history */
+		FServerSideRewindSnapshot ServerSideRewindSnapshot;
+		TakeServerSideRewindSnapshot(ServerSideRewindSnapshot);
+		ServerSideRewindSnapshotHistory.AddHead(ServerSideRewindSnapshot);
+
+		/** Show snapshot on screen */
+		ShowServerSideRewindSnapshot(ServerSideRewindSnapshot);
+	}
+}
+
 void UServerSideRewindComponent::ShowServerSideRewindSnapshot(const FServerSideRewindSnapshot& Snapshot)
 {
+	/** Draw every hitbox to screen */
 	for (FHitBoxSnapshot HitBox : Snapshot.HitBoxSnapshots)
 	{
 		DrawDebugBox(GetWorld(), HitBox.Location, HitBox.Extent, 
-			FQuat(HitBox.Rotation), FColor::Red, false, 3.0f);
+			FQuat(HitBox.Rotation), FColor::Red, false, MaxRewindTime);
 	}
 }
 

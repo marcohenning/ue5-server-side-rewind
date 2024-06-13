@@ -61,10 +61,25 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	/** Character owning this component */
 	UPROPERTY()
 	AFirstPersonCharacter* Character;
 
-	void SaveServerSideRewindSnapshot(FServerSideRewindSnapshot& Snapshot);
+	/** Max amount of seconds to go back in time */
+	float MaxRewindTime = 3.0f;
+
+	/** Server side rewind snapshots going back as far as MaxRewindTime allows */
+	TDoubleLinkedList<FServerSideRewindSnapshot> ServerSideRewindSnapshotHistory;
+
+	/** Takes snapshot of the current character state */
+	void TakeServerSideRewindSnapshot(FServerSideRewindSnapshot& Snapshot);
+
+	/** Saves snapshot of the current character state */
+	void SaveServerSideRewindSnapshot();
+
+	/** Draws hitboxes (Debug only) */
 	void ShowServerSideRewindSnapshot(const FServerSideRewindSnapshot& Snapshot);
+
+	/** Checks for kill using server side rewind */
 	bool CheckForKill(AFirstPersonCharacter* HitCharacter, float Time, FVector Start, FVector End);
 };
