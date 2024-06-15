@@ -186,6 +186,10 @@ void AFirstPersonCharacter::Look(const FInputActionValue& Value)
 
 void AFirstPersonCharacter::KillButtonPressed()
 {
+	/** Get game state if nullptr, otherwise use the member variable */
+	GameState = GameState == nullptr ? UGameplayStatics::GetGameState(this) : GameState;
+	if (GameState == nullptr) { return; }
+
 	/** Get viewport center */
 	FVector2D ViewportSize;
 	if (GEngine->GameViewport) { GEngine->GameViewport->GetViewportSize(ViewportSize); }
@@ -197,6 +201,8 @@ void AFirstPersonCharacter::KillButtonPressed()
 	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(
 		this, 0), ViewportCenter, ViewportCenterWorldPosition, ViewportCenterWorldDirection);
 
+	if (!bScreenToWorld) { return; }
+
 	/** Start of the line trace offset by 1 meter to avoid hitting own mesh */
 	FVector Start = ViewportCenterWorldPosition + ViewportCenterWorldDirection * 100.0f;
 	/** End of the line trace 1000 meters from start */
@@ -204,38 +210,32 @@ void AFirstPersonCharacter::KillButtonPressed()
 
 	AFirstPersonCharacter* HitCharacter = (AFirstPersonCharacter*) nullptr;
 
-	/** Perform line trace on client (used for drawing debug lines and boxes) */
-	if (!HasAuthority())
+	/** Perform line trace */
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
+
+	/** Draw debug line */
+	if (HitResult.bBlockingHit)
 	{
-		FHitResult HitResult;
-		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
+		DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor(255, 0, 0), false, 10.0f, 0, 1.0f);
 
-		/** Draw debug line */
-		if (HitResult.bBlockingHit)
+		/** Draw debug box if hit actor is of type AFirstPersonCharacter */
+		if (HitResult.GetActor())
 		{
-			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor(255, 0, 0), false, 10.0f, 0, 1.0f);
-
-			/** Draw debug box if hit actor is of type AFirstPersonCharacter */
-			if (HitResult.GetActor())
+			HitCharacter = Cast<AFirstPersonCharacter>(HitResult.GetActor());
+			if (HitCharacter)
 			{
-				HitCharacter = Cast<AFirstPersonCharacter>(HitResult.GetActor());
-				if (HitCharacter)
-				{
-					DrawDebugBox(GetWorld(), HitResult.Location, FVector(6.0f), FColor(255, 0, 0), false, 10.0f, 0, 1.0f);
-				}
+				DrawDebugBox(GetWorld(), HitResult.Location, FVector(8.0f), FColor(255, 0, 0), false, 10.0f, 0, 1.0f);
 			}
 		}
-		else { DrawDebugLine(GetWorld(), Start, End, FColor(255, 0, 0), false, 2.0f, 0, 1.0f); }
 	}
+	else { DrawDebugLine(GetWorld(), Start, End, FColor(255, 0, 0), false, 2.0f, 0, 1.0f); }
 
-	/** Get game state if nullptr, otherwise use the member variable */
-	GameState = GameState == nullptr ? UGameplayStatics::GetGameState(this) : GameState;
+	/** Handle server (Check for kill without server side rewind) */
+	if (HasAuthority()) { CheckForKill(Start, End); }
 
-	/** Request server to check for kill */
-	if (bScreenToWorld && GameState)
-	{
-		ServerKillButtonPressed(HitCharacter, GameState->GetServerWorldTimeSeconds(), Start, End);
-	}
+	/** Handle clients (Request server to check for kill) */
+	else { ServerKillButtonPressed(HitCharacter, GameState->GetServerWorldTimeSeconds(), Start, End); }
 }
 
 void AFirstPersonCharacter::CheckForKill(FVector Start, FVector End)
