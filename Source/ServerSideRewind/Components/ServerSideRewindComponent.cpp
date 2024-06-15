@@ -64,7 +64,7 @@ void UServerSideRewindComponent::SaveServerSideRewindSnapshot()
 		/** Total stored time in snapshot history */
 		float SnapshotHistoryLength = ServerSideRewindSnapshotHistory.GetHead()->
 			GetValue().Time - ServerSideRewindSnapshotHistory.GetTail()->GetValue().Time;
-		
+
 		/** Remove snapshots older than MaxRewindTime */
 		while (SnapshotHistoryLength > MaxRewindTime)
 		{
@@ -112,6 +112,10 @@ FServerSideRewindSnapshot UServerSideRewindComponent::FindSnapshotToCheck(
 	const float OldestTime = History.GetTail()->GetValue().Time;
 	const float LatestTime = History.GetHead()->GetValue().Time;
 
+	UE_LOG(LogTemp, Warning, TEXT("Oldest: %f"), OldestTime);
+	UE_LOG(LogTemp, Warning, TEXT("Latest: %f"), LatestTime);
+	UE_LOG(LogTemp, Warning, TEXT("Hit: %f"), Time);
+
 	/** Too far back in the past */
 	if (OldestTime > Time) { return FServerSideRewindSnapshot(); }
 
@@ -121,8 +125,9 @@ FServerSideRewindSnapshot UServerSideRewindComponent::FindSnapshotToCheck(
 	/** Hit time newer than or equal to latest snapshot, simply return latest snapshot */
 	if (LatestTime <= Time) { return History.GetHead()->GetValue(); }
 
-	/** Find first snapshot that is equal to or older than hit time and return it */
 	TDoubleLinkedList<FServerSideRewindSnapshot>::TDoubleLinkedListNode* CurrentNode = History.GetHead();
+
+	/** Find first snapshot that is equal to or older than hit time and return it */
 	while (CurrentNode->GetValue().Time > Time)
 	{
 		if (CurrentNode->GetNextNode() == nullptr) { break; }
@@ -138,7 +143,7 @@ void UServerSideRewindComponent::MoveHitBoxesToSnapshot(AFirstPersonCharacter* T
 
 	for (auto& HitBox : TargetCharacter->HitBoxes)
 	{
-		if (HitBox.Value == nullptr) { break; }
+		if (HitBox.Value == nullptr || !Snapshot.HitBoxSnapshots.Contains(HitBox.Key)) { break; }
 
 		HitBox.Value->SetWorldLocation(Snapshot.HitBoxSnapshots[HitBox.Key].Location);
 		HitBox.Value->SetWorldRotation(Snapshot.HitBoxSnapshots[HitBox.Key].Rotation);
@@ -161,6 +166,32 @@ bool UServerSideRewindComponent::CheckForKill(AFirstPersonCharacter* HitCharacte
 	/** Move hitboxes to their position at the time of the snapshot to check */
 	MoveHitBoxesToSnapshot(HitCharacter, SnapshotToCheck);
 
-	/** TODO: Implement check */
-	return false;
+	/** Enable collision on hitboxes */
+	for (auto& HitBox : HitCharacter->HitBoxes)
+	{
+		if (HitBox.Value != nullptr)
+		{
+			HitBox.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		}
+	}
+
+	/** Perform a line trace to check kill */
+	FHitResult HitResult;
+	bool Hit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, 
+		ECollisionChannel::ECC_GameTraceChannel1);
+
+	/** Reset hitbox positions */
+	MoveHitBoxesToSnapshot(HitCharacter, CurrentSnapshot);
+
+	/** Disable collision on hitboxes */
+	for (auto& HitBox : HitCharacter->HitBoxes)
+	{
+		if (HitBox.Value != nullptr)
+		{
+			HitBox.Value->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+	}
+
+	/** Return result of line trace */
+	return Hit;
 }

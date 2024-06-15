@@ -29,7 +29,6 @@ public:
 	FORCEINLINE UServerSideRewindComponent* GetServerSideRewindComponent() { return ServerSideRewindComponent; }
 
 	/** Map storing all hit boxes */
-	UPROPERTY()
 	TMap<FName, UBoxComponent*> HitBoxes;
 
 protected:
@@ -43,6 +42,10 @@ private:
 	/** Server side rewind component */
 	UPROPERTY()
 	UServerSideRewindComponent* ServerSideRewindComponent;
+
+	/** Game state (used for getting server time) */
+	UPROPERTY()
+	AGameStateBase* GameState;
 
 	/**
 	* Hit boxes used for server-side rewind
@@ -127,14 +130,14 @@ private:
 
 	/** Server remote procedure call to check for kill */
 	UFUNCTION(Server, Reliable)
-	void ServerKillButtonPressed(FVector Start, FVector End);
+	void ServerKillButtonPressed(AFirstPersonCharacter* HitCharacter, float Time, FVector Start, FVector End);
 
 	/**
 	* Methods to check for valid kill.
 	* Called from ServerKillButtonPressed method.
 	*/
 	void CheckForKill(FVector Start, FVector End);
-	void CheckForKillServerSideRewind(FVector Start, FVector End);
+	void CheckForKillServerSideRewind(AFirstPersonCharacter* HitCharacter, float Time, FVector Start, FVector End);
 
 	/** Multicast remote procedure call to enable ragdoll when character is killed */
 	UFUNCTION(NetMulticast, Reliable)

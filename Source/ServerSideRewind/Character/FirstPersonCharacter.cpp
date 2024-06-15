@@ -9,6 +9,7 @@
 #include "ServerSideRewind/GameMode/ServerSideRewindGameMode.h"
 #include "Components/BoxComponent.h"
 #include "ServerSideRewind/Components/ServerSideRewindComponent.h"
+#include "GameFramework/GameStateBase.h"
 
 
 AFirstPersonCharacter::AFirstPersonCharacter()
@@ -201,6 +202,8 @@ void AFirstPersonCharacter::KillButtonPressed()
 	/** End of the line trace 1000 meters from start */
 	FVector End = Start + ViewportCenterWorldDirection * 100000.0f;
 
+	AFirstPersonCharacter* HitCharacter = (AFirstPersonCharacter*) nullptr;
+
 	/** Perform line trace on client (used for drawing debug lines and boxes) */
 	if (!HasAuthority())
 	{
@@ -215,7 +218,7 @@ void AFirstPersonCharacter::KillButtonPressed()
 			/** Draw debug box if hit actor is of type AFirstPersonCharacter */
 			if (HitResult.GetActor())
 			{
-				AFirstPersonCharacter* HitCharacter = Cast<AFirstPersonCharacter>(HitResult.GetActor());
+				HitCharacter = Cast<AFirstPersonCharacter>(HitResult.GetActor());
 				if (HitCharacter)
 				{
 					DrawDebugBox(GetWorld(), HitResult.Location, FVector(6.0f), FColor(255, 0, 0), false, 10.0f, 0, 1.0f);
@@ -225,8 +228,14 @@ void AFirstPersonCharacter::KillButtonPressed()
 		else { DrawDebugLine(GetWorld(), Start, End, FColor(255, 0, 0), false, 2.0f, 0, 1.0f); }
 	}
 
+	/** Get game state if nullptr, otherwise use the member variable */
+	GameState = GameState == nullptr ? UGameplayStatics::GetGameState(this) : GameState;
+
 	/** Request server to check for kill */
-	if (bScreenToWorld) { ServerKillButtonPressed(Start, End); }
+	if (bScreenToWorld && GameState)
+	{
+		ServerKillButtonPressed(HitCharacter, GameState->GetServerWorldTimeSeconds(), Start, End);
+	}
 }
 
 void AFirstPersonCharacter::CheckForKill(FVector Start, FVector End)
@@ -243,12 +252,20 @@ void AFirstPersonCharacter::CheckForKill(FVector Start, FVector End)
 	}
 }
 
-void AFirstPersonCharacter::CheckForKillServerSideRewind(FVector Start, FVector End)
+void AFirstPersonCharacter::CheckForKillServerSideRewind(AFirstPersonCharacter* HitCharacter, 
+	float Time, FVector Start, FVector End)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Check for kill using server-side-rewind."))
+	if (ServerSideRewindComponent == nullptr || HitCharacter == nullptr) { return; }
+
+	/** Kill player if check was successful */
+	if (ServerSideRewindComponent->CheckForKill(HitCharacter, Time, Start, End))
+	{
+		HitCharacter->MulticastRagdoll();
+	}
 }
 
-void AFirstPersonCharacter::ServerKillButtonPressed_Implementation(FVector Start, FVector End)
+void AFirstPersonCharacter::ServerKillButtonPressed_Implementation(AFirstPersonCharacter* HitCharacter, 
+	float Time, FVector Start, FVector End)
 {
 	/** Get game mode */
 	AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(this);
@@ -259,7 +276,7 @@ void AFirstPersonCharacter::ServerKillButtonPressed_Implementation(FVector Start
 	if (GameMode == nullptr) { return; }
 
 	/** Initiate checking for kill depending on server side rewind settings */
-	if (GameMode->bUseServerSideRewind) { CheckForKillServerSideRewind(Start, End); }
+	if (GameMode->bUseServerSideRewind) { CheckForKillServerSideRewind(HitCharacter, Time, Start, End); }
 	else { CheckForKill(Start, End); }
 }
 
