@@ -68,6 +68,10 @@ private:
 	UPROPERTY()
 	AFirstPersonCharacter* Character;
 
+	/** Game state (used for getting server time) */
+	UPROPERTY()
+	AGameStateBase* GameState;
+
 	/** Max amount of seconds to go back in time */
 	float MaxRewindTime = 3.0f;
 

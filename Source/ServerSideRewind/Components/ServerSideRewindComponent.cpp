@@ -1,6 +1,8 @@
 #include "ServerSideRewindComponent.h"
 #include "Components/BoxComponent.h"
 #include "ServerSideRewind/Character/FirstPersonCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/GameStateBase.h"
 
 
 UServerSideRewindComponent::UServerSideRewindComponent()
@@ -24,10 +26,13 @@ void UServerSideRewindComponent::TickComponent(float DeltaTime, ELevelTick TickT
 void UServerSideRewindComponent::TakeServerSideRewindSnapshot(AFirstPersonCharacter* TargetCharacter, 
 	FServerSideRewindSnapshot& Snapshot)
 {
-	if (TargetCharacter == nullptr) { return; }
+	/** Get game state if nullptr, otherwise use the member variable */
+	GameState = GameState == nullptr ? UGameplayStatics::GetGameState(this) : GameState;
+
+	if (TargetCharacter == nullptr || GameState == nullptr) { return; }
 
 	Snapshot.Character = TargetCharacter;
-	Snapshot.Time = GetWorld()->GetTimeSeconds();
+	Snapshot.Time = GameState->GetServerWorldTimeSeconds();
 
 	for (auto& HitBox : TargetCharacter->HitBoxes)
 	{
@@ -56,7 +61,7 @@ void UServerSideRewindComponent::SaveServerSideRewindSnapshot()
 		ServerSideRewindSnapshotHistory.AddHead(ServerSideRewindSnapshot);
 
 		/** Show snapshot on screen */
-		ShowServerSideRewindSnapshot(ServerSideRewindSnapshot);
+		//ShowServerSideRewindSnapshot(ServerSideRewindSnapshot);
 	}
 	/** Handle all other snapshots */
 	else
@@ -79,7 +84,7 @@ void UServerSideRewindComponent::SaveServerSideRewindSnapshot()
 		ServerSideRewindSnapshotHistory.AddHead(ServerSideRewindSnapshot);
 
 		/** Show snapshot on screen */
-		ShowServerSideRewindSnapshot(ServerSideRewindSnapshot);
+		//ShowServerSideRewindSnapshot(ServerSideRewindSnapshot);
 	}
 }
 
