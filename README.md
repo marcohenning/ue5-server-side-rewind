@@ -52,6 +52,8 @@ class SERVERSIDEREWIND_API AFirstPersonCharacter : public ACharacter
 
 * The character controlled by the players
 * Has a `UServerSideRewindComponent`, which is responsible for handling everything related to server-side rewind
+* Has a TMap `HitBoxes` containing all of the character's hitboxes used for server-side rewind
+* Each hitbox is a `UBoxComponent` attached to its respective bone on the character model in the constructor
 
 ## Version
 
