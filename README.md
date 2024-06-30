@@ -34,6 +34,8 @@ https://github.com/marcohenning/ue5-server-side-rewind/assets/91918460/6a2404da-
 
 Every frame the character's hitbox positions are saved in a struct called `FServerSideRewindSnapshot` and stored in a list named `ServerSideRewindSnapshotHistory`. Snapshots older than the maximum rewind time are removed from the list.
 
+https://github.com/marcohenning/ue5-server-side-rewind/assets/91918460/d2be0d8a-51d5-4fbe-8581-203494f9c825
+
 When a potential kill needs to be checked using server-side rewind, the method `CheckForKill()` is called. It first finds the closest available snapshot to the client's time of request using the `FindSnapshotToCheck()` method, then rewinds the hitbox positions to where they were at the time of the snapshot by using the method `MoveHitBoxesToSnapshot()` and finally performs a line trace against the custom trace channel of the hitboxes. Once this is done, the original hitbox positions are restored and a bool containing the result is returned.
 
 The main server-side rewind functionality is implemented in the following classes:
