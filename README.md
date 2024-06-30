@@ -2,6 +2,8 @@
 
 A demo of lag compensation using server-side rewind in Unreal Engine 5 C++.
 
+![Main](https://github.com/marcohenning/ue5-server-side-rewind/assets/91918460/b257f6b9-f162-4a3f-953e-32dfd5f78fc8)
+
 ## About
 
 Lag compensation is an essential part of every fast-paced multiplayer game, especially shooter games. The specific lag compensation concept this project is focussing on is called server-side rewind and is widely used in the shooter game industry. This project is a small demo of how server-side rewind can be implemented in Unreal Engine 5. It consists of a simple kill functionality triggered by pressing the left mouse button and aiming the crosshair at another player. Killed players will collapse and fall to the ground. Server-side rewind can be enabled and disabled in the game mode blueprint. Ping is simulated by specifying the desired amount of packet lag (`PktLag`) in `DefaultEngine.ini`.
@@ -14,13 +16,19 @@ The problem server-side rewind solves is simple. When one player shoots another 
 
 Without lag everything works as intended.
 
+https://github.com/marcohenning/ue5-server-side-rewind/assets/91918460/528a2208-1335-46ee-a1bb-7fd87c5627c5
+
 ## High Ping without Server-Side Rewind
 
 With heavy lag, however, most hits aren't registered.
 
+https://github.com/marcohenning/ue5-server-side-rewind/assets/91918460/834b689e-dc35-44eb-bfab-502279ca2cb6
+
 ## High Ping with Server-Side Rewind
 
 By using server-side rewind, even with heavy lag, the hit is registered correctly. Due to the time the packets require to travel to the server and back to the client under high ping conditions, the kill is delayed, as it is only shown once the client receives confirmation from the server. This is why every large shooter game using server-side rewind will impose ping limits, above which server-side rewind is disabled.
+
+https://github.com/marcohenning/ue5-server-side-rewind/assets/91918460/6a2404da-01ef-49a5-a0b5-1d1d2f0b577b
 
 ## License
 
